@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            .post {
+                border: solid 1px gray;
+                padding: 5px 5px 5px 5px;
+                margin-bottom: 10px;
+            }
+            .post-subject {
+                font-weight: bold;
+                font-family: arial, verdana;
+                background-color: silver;
+                color: blue;
+                padding: 5px 5px 5px 5px;
+            }
+
+            .post-created {
+                font-size: 10px;
+            }
+
+            .post-content {
+                / * border: solid 1px gray;/ 
+            }
+            
+        </style>
+        <title>Raj Julha - Udacity CS253 Blog (Homework 3)</title>
+    </head>
+    <body>
+        <h1>Posts</h1>
+        <div class="error">{{error}}</div>
+
+        {% for post in posts %}
+            <div class="post">
+                <div class="post-subject">{{post.subject}}</div>
+                <div class="post-created">{{post.created}}</div>
+                <!-- strftime("%Y-%m-%d %H:%M:%S", localtime()) -->
+                <pre class="post-content">{{post.content}}</pre>
+            </div>
+        
+        {% endfor %}
+    </body>
+</html>
+
+

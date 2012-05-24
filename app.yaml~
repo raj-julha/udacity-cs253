@@ -1,0 +1,42 @@
+# HW5 ver 6
+application: raj-julha-cs253
+version: 7
+runtime: python27
+api_version: 1
+threadsafe: true
+
+libraries:
+- name: jinja2
+  version: latest
+
+handlers:
+
+# - url: /blog(/?[0-9]+)
+#url: /blog(/?.*)
+
+- url: /blog/post(/?[0-9]+)
+  script: blog.app
+
+- url: /blog/showpost(/?.*)
+  script: blog.app
+
+
+- url: /blog
+  script: blog.app
+
+- url: /blog/newpost
+  script: blog.app
+
+- url: /blog/\.json
+  script: blog.app
+
+- url: /blog/post(/?[0-9]+\.json)
+  script: blog.app
+
+# should be last
+- url: /blog/.*
+  script: raj-julha-cs253.application 
+
+# should be last
+- url: /.*
+  script: raj-julha-cs253.application 

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Raj Julha - Udacity CS253 Blog (Homework 3)</title>
+    </head>
+    <body>
+        <h1>Post</h1>
+        <form method="post">
+            <label>
+                <div>Subject</div>
+                <input type="text" name="subject" width="80" value="{{subject}}" >
+            </label>
+            <label>
+                <div>Comment</div>
+                <textarea name="content" rows="10" cols="80" >{{content}}</textarea>
+            </label>
+
+            <div class="error">{{error}}</div>
+            <input type="submit">
+        </form>
+        <hr>
+        {% for art in arts %}
+            <div class="art">
+                <div class="art-title">{{art.subject}}</div>
+                <pre class="art-body">{{art.content}}</pre>
+            </div>
+        {% endfor %}
+    </body>
+</html>
+
+
