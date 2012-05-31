@@ -6,6 +6,7 @@
                 border: solid 1px gray;
                 padding: 5px 5px 5px 5px;
                 margin-bottom: 10px;
+                width: 75%;
             }
             .post-subject {
                 font-weight: bold;
@@ -39,6 +40,7 @@
             </div>
         
         {% endfor %}
+        <br>Queried {{cacheage}} Seconds ago
     </body>
 </html>
 

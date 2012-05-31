@@ -5,10 +5,11 @@ import jinja2
 import logging
 import urllib
 import json # check if webapp2 exposes any json functionality
-from time import gmtime, strftime, localtime
+from time import gmtime, strftime, localtime, time
 
 
 from google.appengine.ext import db
+from google.appengine.api import memcache
 # The entries below must be added to the app.yaml file
 #libraries:
 #- name: jinja2
@@ -64,9 +65,11 @@ class MainPage(Handler):
             # and redirect the user to the entry
             id = p.key().id()
             s = "new post has id: %s " % id
-            newposturl = "/blog/post/%s" % id
+            newposturl = "/blog/%s" % id
             #self.response.write(s)
             #self.redirect("/blog")
+            # flush cache
+            memcache.flush_all()
             self.redirect(newposturl)
             
 
@@ -76,28 +79,84 @@ class MainPage(Handler):
             self.render_front(subject, content, error)
 
 class ShowBlog(Handler):
-    def render_front(self, subject="", content="", error=""):
-        posts = db.GqlQuery("select * from Post "
-                           " order by created desc")
-        #self.render("front.html", title=title, art=art, error=error, arts=arts)
-        self.render("postings.html", error=error, posts=posts)
-#        self.write("Show blog entries ..." + strftime("%Y-%m-%d %H:%M:%S", localtime()))
-
-#        for post in posts:
-#            if post.subject:
-#                self.response.out.write('<b>Subject: %s</b> Posted on %s ' % (post.subject, post.created))
-#            else:
-#                self.response.out.write('No subject')
-#            self.response.out.write('<blockquote>%s</blockquote>' %
-#                                    cgi.escape(post.content))
-
-
-
     def get(self):
         # gmtime()
         # self.write("Show blog entries ..." + strftime("%Y-%m-%d %H:%M:%S", localtime()))
         # '2009-01-05 22:14:39'
-        self.render_front()
+        #blogs = self.get_blogs()
+        #self.render_front()
+        #self.write(blogs)
+        self.get_blogs2()
+
+    def render_front(self, subject="", content="", error=""):
+        fullpagekey = 'mainpage'
+        
+        posts = db.GqlQuery("select * from Post "
+                           " order by created desc")
+        self.render("postings.html", error=error, posts=posts)
+
+
+    def get_blogs2(self):
+        """
+            get_blogs()
+            Checks the cache to see if blogs exist
+            If not, call get_data_from_store and set cache
+
+            Returns:
+                A List containing blogs            
+        """
+        posts, cacheage = self.get_data_from_store()
+        # cacheage = time() - lastcached
+        self.render("postings.html", error='', posts=posts, cacheage = cacheage)
+
+
+    def get_data_from_store(self):
+        key = "blogspage"
+
+        cacheddata = memcache.get(key)
+        if cacheddata:
+            cacheage = time() - cacheddata[1]
+            return cacheddata[0], cacheage
+        else:
+            logging.debug("DB Query")
+            posts = db.GqlQuery("select * from Post "
+                           " order by created desc")
+            cachedTime = time()
+            posts2 = list(posts) # force data read
+            memcache.set(key, [posts2, cachedTime])
+            return posts, 0
+
+
+    def get_blogs(self):
+        """
+            get_blogs()
+            Checks the cache to see if blogs exist
+            If not, call render_front and set cache
+
+            Returns:
+                A string of HTML containing blogs            
+        """
+
+        cachedItem = memcache.get("blogs")
+        if cachedItem is None or update:
+            blogs = self.render_blogs()
+            curtime = time()
+            value = (blogs, curtime)
+            if not memcache.set("blogs", value):
+                logging.error("Memcache set failed")
+            return blogs
+        else:
+            blogs, lasttime = cachedItem
+            logging.debug("Returning memcached data. %s", lasttime)
+            return blogs
+
+    def render_blogs(self):
+        logging.debug("DB Query")
+        posts = db.GqlQuery("select * from Post "
+                           " order by created desc")
+        return self.render_str("postings.html", error='', posts=posts)
+
+
 
 class show_single_post(Handler):
     def get(self, resource):
@@ -112,12 +171,25 @@ class show_single_post(Handler):
 
         id = int(postid) if postid.isdigit() else 0
 
-        key = db.Key.from_path('Post', id)
-        post = Post.get(key)
+        cachekey = "K-%s" % id
+
+        cacheddata = memcache.get(cachekey)
+
+        if cacheddata:
+            post, cachedTime = cacheddata
+            cacheage = time() - cachedTime
+        else:
+            logging.debug("DB Query for post %s ", id)
+            key = db.Key.from_path('Post', id)
+            post = Post.get(key)
+            cachedTime = time()
+            memcache.set(cachekey, [post, cachedTime])
+            cacheage = 0
+
         if param1.find('.') > -1:
             self.render_json(post)
         else:
-            self.render_one(post)
+            self.render_one(post, cacheage)
 
     def render_debug(self, id, key, post):
         self.response.write("id: %s" % id) 
@@ -132,8 +204,8 @@ class show_single_post(Handler):
         self.response.write("<br>")
 
 
-    def render_one(self, post):
-        self.render("oneentry.html", post=post)
+    def render_one(self, post, cacheage=0):
+        self.render("oneentry.html", post=post, cacheage=cacheage)
 
 
     def render_json(self, post):
@@ -213,6 +285,16 @@ class ShowOneJson(Handler):
         logging.debug('deser: %s ', deser)
         self.response.out.write(jsontext)
 
+
+
+
+class FlushCache(Handler):
+    def get(self):
+        memcache.flush_all()
+        # self.response.write("Cache Cleared")        
+        self.redirect("/blog")                        
+
+
 # tegexp below states any characters other than /
 # ('/blog/post/([^/]+)?', show_single_post)
 #           ('/blog/post(/?[0-9]+)', show_single_post)
@@ -222,10 +304,13 @@ class ShowOneJson(Handler):
 # ('/blog/post(/?[0-9]+)', show_single_post)
 # http://localhost:8080/blog/post/123 shows /123
 
+# ('/blog/post/([^/]+)?', show_single_post),
+
 app = webapp2.WSGIApplication([
                                ('/blog', ShowBlog),
                                ('/blog/newpost', MainPage),
-                               ('/blog/post/([^/]+)?', show_single_post),
+                               ('/blog/flush', FlushCache),
+                               ('/blog/([^/]+)?', show_single_post),
                                ('/blog/showpost/([^/]+)?', show_single_post),
                                ('/blog/\.json', ShowJson),
                                ('/blog/post/([^/]+)?\.json', ShowOneJson)

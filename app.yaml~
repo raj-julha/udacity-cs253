@@ -1,6 +1,8 @@
-# HW5 ver 6
+# HW5 ver 7
+# HW6 ver 8
+# HW6 part 2 ver 9
 application: raj-julha-cs253
-version: 7
+version: 9
 runtime: python27
 api_version: 1
 threadsafe: true
@@ -11,11 +13,9 @@ libraries:
 
 handlers:
 
-# - url: /blog(/?[0-9]+)
-#url: /blog(/?.*)
 
-- url: /blog/post(/?[0-9]+)
-  script: blog.app
+# - url: /blog/post(/?[0-9]+)
+#  script: blog.app
 
 - url: /blog/showpost(/?.*)
   script: blog.app
@@ -30,8 +30,18 @@ handlers:
 - url: /blog/\.json
   script: blog.app
 
+- url: /blog/flush
+  script: blog.app
+
 - url: /blog/post(/?[0-9]+\.json)
   script: blog.app
+
+# - url: /blog/post(/?[0-9]+)
+#  script: blog.app
+
+- url: /blog(/?[0-9]+)
+  script: blog.app
+
 
 # should be last
 - url: /blog/.*

@@ -49,7 +49,7 @@ signupform = """
   </head>
 <body>
 <H1>Signup</H1>
-<form method="post" action="/signup">
+<form method="post" action="/blog/signup">
 <table>
 <tr>
 <td>Username</td><td><input name="username" value="%(username)s" ></td>
