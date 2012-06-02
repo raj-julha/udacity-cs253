@@ -43,10 +43,32 @@ handlers:
 - url: /blog(/?[0-9]+)
   script: blog.app
 
+- url: /blog(/(?:[a-zA-Z0-9_-]+/?)*)
+  script: blog.app
 
 # should be last
 - url: /blog/.*
   script: raj-julha-cs253.application 
+
+
+#- url: /weke(/(?:[a-zA-Z0-9_-]+/?)*)
+#  script: wiki.app
+
+- url: /wiki/signup
+  script: raj-julha-cs253.application
+
+- url: /wiki/welcome
+  script: raj-julha-cs253.application
+
+- url: /wiki/login
+  script: raj-julha-cs253.application
+
+- url: /wiki/logout
+  script: raj-julha-cs253.application
+
+
+- url: /wiki/.*
+  script: wiki.app
 
 # should be last
 - url: /.*

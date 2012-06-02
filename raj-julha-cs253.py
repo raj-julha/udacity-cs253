@@ -49,7 +49,7 @@ signupform = """
   </head>
 <body>
 <H1>Signup</H1>
-<form method="post" action="/blog/signup">
+<form method="post" action="/wiki/signup">
 <table>
 <tr>
 <td>Username</td><td><input name="username" value="%(username)s" ></td>
@@ -214,6 +214,7 @@ class SignupHandler(webapp2.RequestHandler):
         self.response.headers.add_header('Set-Cookie', hw4)
 
         return id
+
         
       
 
@@ -244,7 +245,7 @@ class SignupHandler(webapp2.RequestHandler):
             signupformfields['error_verify'] = 'Password and verify are not same' 
             password_verify_same = False
         else:
-            logging.debug('Password: %s, verify: %s', signupformfields['password'],signupformfields['verify'])
+            logging.debug('Password: %s, verify: %s', signupformfields['password'], signupformfields['verify'])
 
         if not password:
             signupformfields['error_password'] = 'Password is invalid'
@@ -346,7 +347,7 @@ class LoginHandler(Handler):
 class LogoutHandler(Handler):    
     def get(self):
         delete_authentication_cookie(self.response)
-        self.redirect("/blog/signup")        
+        self.redirect("/wiki/signup")        
 
 class WelcomeHandler(webapp2.RequestHandler):
     def get(self):
@@ -358,7 +359,7 @@ class WelcomeHandler(webapp2.RequestHandler):
             username = hw4_cookie.split('|')[0]
             self.response.write("Welcome, %(username)s !" % {'username': username })
         else:
-            self.redirect("/blog/signup")    
+            self.redirect("/wiki/signup")    
             # self.response.write("Welcome, you're not autheticated")
 
 class TestHandler(webapp2.RequestHandler):
@@ -383,6 +384,11 @@ application = webapp2.WSGIApplication(
                                       ('/blog/welcome', WelcomeHandler),
                                       ('/blog/login', LoginHandler),
                                       ('/blog/logout', LogoutHandler),
-                                      ('/testform', TestHandler)],
+                                      ('/testform', TestHandler),
+                                      ('/wiki/signup', SignupHandler),
+                                      ('/wiki/welcome', WelcomeHandler),
+                                      ('/wiki/login', LoginHandler),
+                                      ('/wiki/logout', LogoutHandler)
+                                      ],                                      
                                      debug=True)
 

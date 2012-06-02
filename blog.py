@@ -10,6 +10,8 @@ from time import gmtime, strftime, localtime, time
 
 from google.appengine.ext import db
 from google.appengine.api import memcache
+
+from wiki import *
 # The entries below must be added to the app.yaml file
 #libraries:
 #- name: jinja2
@@ -161,6 +163,7 @@ class ShowBlog(Handler):
 class show_single_post(Handler):
     def get(self, resource):
         param1 = urllib.unquote(resource)
+        logging.info("param1: %s", param1)
         postid = param1.upper().replace('.JSON','')
         #postid = urllib.unquote(resource)
         # page displays 123&co when using url below
@@ -306,6 +309,7 @@ class FlushCache(Handler):
 
 # ('/blog/post/([^/]+)?', show_single_post),
 
+PAGE_RE = r'(/(?:[a-zA-Z0-9_-]+/?)*)'
 app = webapp2.WSGIApplication([
                                ('/blog', ShowBlog),
                                ('/blog/newpost', MainPage),
@@ -313,6 +317,8 @@ app = webapp2.WSGIApplication([
                                ('/blog/([^/]+)?', show_single_post),
                                ('/blog/showpost/([^/]+)?', show_single_post),
                                ('/blog/\.json', ShowJson),
-                               ('/blog/post/([^/]+)?\.json', ShowOneJson)
+                               ('/blog/post/([^/]+)?\.json', ShowOneJson),
+                               ('/_edit' + PAGE_RE, EditPage),
+                               (PAGE_RE, WikiPage)
                               ],
                                  debug=True)

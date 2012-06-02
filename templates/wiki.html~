@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Raj Julha - Udacity CS253 WIKI (Homework 7)</title>
+    </head>
+    <body>
+
+        {% if pageaction == 'edit' %}
+        <form method="post" >
+                <textarea name="content" rows="20" cols="150">{{content}}</textarea>
+            <div class="error">{{error}}</div>
+            <input type="submit" value="Save">
+        </form>
+        {% else %}
+            <a href="{{editurl}}">Edit</a>
+            <br>
+            {{content}}
+        {% endif %}
+
+       {% if wikidata == 'page2' %}
+
+            This is page 2
+       {% endif %}
+    </body>
+</html>
+
+
