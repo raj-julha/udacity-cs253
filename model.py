@@ -22,3 +22,4 @@ class Wiki(db.Model):
     created = db.DateTimeProperty(auto_now_add = True)
     updated = db.DateTimeProperty(required = False, auto_now=False)
 
+

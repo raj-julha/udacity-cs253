@@ -4,13 +4,14 @@
         <title>Raj Julha - Udacity CS253 WIKI (Homework 7)</title>
     </head>
     <body>
-
+        <a href="/wiki/_history/{{pageid}}">History</a> &nbsp;nbsp;
         {% if pageaction == 'edit' %}
         <a href="{{editurl}}">View</a>
+
         <br>
         <form method="post" >
                 <textarea name="content" rows="20" cols="150">{{content}}</textarea>
-            <div class="error">{{error}}</div>
+
             <input type="submit" value="Save">
         </form>
         {% else %}
@@ -23,6 +24,8 @@
 
             This is page 2
        {% endif %}
+      <br> <div class="error">{{error}}</div>
+      <br> pageid : {{pageid}}
     </body>
 </html>
 

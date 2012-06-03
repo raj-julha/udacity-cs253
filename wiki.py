@@ -52,7 +52,7 @@ class WikiPage(Handler):
         page = urllib.unquote(resource)
         self.response.write("WIKI Page, resource: " + page )  
         #self.render_one(param1, param1, '/wiki/_edit/'+page,  'no error')
-        self.render_one('data for page '+page , page, 'view', '/wiki/_edit/'+page,  'no error')
+        self.render_one('data for page '+page , page, 'view', '/wiki/_edit/'+page,  'no error in ' +page )
 
     def render_one(self, wikidata='', page='', pageaction='', editurl='', error=''):
         #wiki = Wiki.gql("WHERE page = :1", page)
@@ -61,7 +61,7 @@ class WikiPage(Handler):
         wiki = q.get()
         if q.count() > 0:    
             content = wiki.content + ' row count: %s' % q.count() 
-            self.render("wiki.html", content=content, pageaction=pageaction, editurl=editurl, error=error)
+            self.render("wiki.html", content=content, pageaction=pageaction, editurl=editurl, pageid=page, error=error)
         else:
             #content = 'No data' 
             self.redirect('/wiki/_edit/%s' % page )
@@ -109,24 +109,27 @@ class EditPage(Handler):
         # content = self.request.get('content')
         self.response.write("WIKI Saved: " + content )
         self.response.write("<br>WIKI escaped: " + cgi.escape(self.request.get('content'), quote = True))
-        self.save(page, content)
+        self.save(page, content, keep_history=True)
         self.redirect('/wiki/%s' % page)
 
-    def render_one(self, content='', pageid='', pageaction='', editurl='', error=''):        
-        self.render("wiki.html", content=content, pageaction=pageaction, editurl=editurl, error=error)
+    def render_one(self, content='', pageid='', pageaction='', editurl='', histurl='', error=''):        
+        self.render("wiki.html", content=content, pageaction=pageaction, editurl=editurl, histurl=histurl, error=error)
 
 
 
-    def save(self, page, content):
+    def save(self, page, content, keep_history=False):
         # wiki = Wiki.gql("WHERE page = :1", page)
-        q = db.Query(Wiki)
-        q.filter('page =', page)
-        wiki = q.get()
-
-        if q.count() > 0:    
-            wiki.content = content
-        else:
+        if keep_history:
             wiki = Wiki(page=page, content=content)
+        else:
+            q = db.Query(Wiki)
+            q.filter('page =', page)
+            wiki = q.get()
+
+            if q.count() > 0:    
+                wiki.content = content
+            else:
+                wiki = Wiki(page=page, content=content)
 
         wiki.put()
 
@@ -140,6 +143,58 @@ class EditPage(Handler):
             return wiki
         else:
             return None
+
+
+class HistoryPage(Handler):
+    def get(self):        
+        self.response.write("History WIKI Page")  
+
+    def get(self, resource):
+        page = urllib.unquote(resource)
+        hw4_cookie = self.request.cookies.get('HW4')
+
+        if hw4_cookie:
+            username = hw4_cookie.split('|')[0]
+            self.response.write("Welcome, %(username)s !" % {'username': username })
+        else:
+            self.redirect("/wiki/signup")    
+            #self.response.write("Welcome, you're not autheticated")
+
+        self.response.write("History WIKI Page, resource: " + page )                        
+        self.get_pages(page)
+        #wiki = self.get_wiki(page=page)
+        #if wiki:
+        #    self.render_one(wiki.content, page, 'edit', '/wiki/'+page,  'no error')
+        #else:            
+        #    self.render_one('empty page', page, 'edit', '/wiki/_edit/'+page,  'no error')
+        #    #self.redirect('/wiki/_edit/%s' % page)
+
+
+    def get_pages(self, page):
+        """
+            get_blogs()
+            Checks the cache to see if blogs exist
+            If not, call get_data_from_store and set cache
+
+            Returns:
+                A List containing blogs            
+        """
+        pages = self.get_data_from_store(page)
+        # cacheage = time() - lastcached
+        self.render("wikihistory.html", error='', pages=pages, cacheage = 0)
+
+
+    def get_data_from_store(self, page):
+        # pages = Wiki.gql("WHERE page = :1", page)
+
+        pages = db.GqlQuery("select * from Wiki where page = :1 "
+                       " order by created desc", page)
+        pages2 = list(pages) # force data read
+        for p in pages2:
+            logging.debug("db key: %s , id: %s ", p.key(), p.key().id())
+
+        return pages2
+
 
     
 
@@ -160,6 +215,7 @@ app = webapp2.WSGIApplication([
                                ('/wiki/abc', WikiPage),                              
                                ('/wiki/save', EditPage),                              
                                ('/wiki/_edit/([^/]+[a-zA-Z0-9_-]+)?', EditPage),
+                               ('/wiki/_history/([^/]+[a-zA-Z0-9_-]+)?', HistoryPage),
                                ('/wiki/([^/]+[a-zA-Z0-9_-]+)?', WikiPage),
                                ('/wiki(/(?:[a-zA-Z0-9_-]+/?)*)', WikiPageStar),
                                ('/wiki/.*', WekePage)

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            .post {
+                border: solid 1px gray;
+                padding: 5px 5px 5px 5px;
+                margin-bottom: 10px;
+                width: 75%;
+            }
+            .post-subject {
+                font-weight: bold;
+                font-family: arial, verdana;
+                background-color: silver;
+                color: blue;
+                padding: 5px 5px 5px 5px;
+            }
+
+            .post-created {
+                font-size: 10px;
+            }
+
+            .post-content {
+                / * border: solid 1px gray;/ 
+            }
+            
+        </style>
+        <title>Raj Julha - Udacity CS253 Wiki History (Homework 7 Bonus Question)</title>
+    </head>
+    <body>
+        <h1>History</h1>
+        <div class="error">{{error}}</div>
+        <table>
+            <tr>
+                <td>Date</td>
+                <td>content</td>
+                <td>View</td>
+                <td>Edit</td>
+            </tr>
+        {% for page in pages %}
+        
+            <tr>
+                <td>{{page.created}}</td>
+                <td>{{page.content}}</td>
+                <td><a href="/wiki/{{page.page}}?v={{page.key().id()}}">view</a></td>
+                <td><a href="/wiki/_edit/{{page.page}}?v={{page.key().id()}}">edit</a></td>
+            </tr>
+ 
+        {% endfor %}
+        </table>
+
+        <br>Queried {{cacheage}} seconds ago
+    </body>
+</html>
+
+
