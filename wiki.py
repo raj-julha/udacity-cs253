@@ -90,8 +90,8 @@ class EditPage(Handler):
             username = hw4_cookie.split('|')[0]
             self.response.write("Welcome, %(username)s !" % {'username': username })
         else:
-            #self.redirect("/wiki/signup")    
-            self.response.write("Welcome, you're not autheticated")
+            self.redirect("/wiki/signup")    
+            #self.response.write("Welcome, you're not autheticated")
 
         self.response.write("Edit WIKI Page, resource: " + page )                        
         #self.render_one(param1, param1, '/wiki/_edit/'+page,  'no error')

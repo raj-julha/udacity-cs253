@@ -60,6 +60,9 @@ handlers:
 - url: /wiki/welcome
   script: raj-julha-cs253.application
 
+- url: /wiki/login
+  script: raj-julha-cs253.application
+
 - url: /wiki/logout
   script: raj-julha-cs253.application
 
