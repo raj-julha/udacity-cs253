@@ -43,6 +43,82 @@ class WekePage(Handler):
         param1 = urllib.unquote(resource)
         self.response.write("WEKE Page, resource: " + param1 )                        
 
+class WikiHome(Handler):
+    def get(self):
+        # gmtime()
+        # self.write("Show blog entries ..." + strftime("%Y-%m-%d %H:%M:%S", localtime()))
+        # '2009-01-05 22:14:39'
+        #blogs = self.get_blogs()
+        #self.render_front()
+        #self.write(blogs)
+        self.get_blogs2()
+
+    def render_front(self, subject="", content="", error=""):
+        fullpagekey = 'mainpage'
+        
+        posts = db.GqlQuery("select * from Post "
+                           " order by created desc")
+        self.render("postings.html", error=error, posts=posts)
+
+
+    def get_blogs2(self):
+        """
+            get_blogs()
+            Checks the cache to see if blogs exist
+            If not, call get_data_from_store and set cache
+
+            Returns:
+                A List containing blogs            
+        """
+        wikipages, cacheage = self.get_data_from_store()
+        # cacheage = time() - lastcached
+        self.render("wikis.html", error='', wikipages=wikipages, cacheage = cacheage)
+
+    def get_data_from_store(self):
+        key = "wikispage"
+
+        cacheddata = memcache.get(key)
+        if cacheddata:
+            cacheage = time() - cacheddata[1]
+            return cacheddata[0], cacheage
+        else:
+            # logging.debug("DB Query")
+            wikis = db.GqlQuery("select * from Wiki "
+                           " order by created desc")
+            cachedTime = time()
+            wikis2 = list(wikis) # force data read
+            memcache.set(key, [wikis2, cachedTime])
+            logging.debug("Number of wiki pages: %s", len(wikis2))
+            return wikis2, 0
+
+    def get_blogs(self):
+        """
+            get_blogs()
+            Checks the cache to see if blogs exist
+            If not, call render_front and set cache
+
+            Returns:
+                A string of HTML containing blogs            
+        """
+
+        cachedItem = memcache.get("blogs")
+        if cachedItem is None or update:
+            blogs = self.render_blogs()
+            curtime = time()
+            value = (blogs, curtime)
+            if not memcache.set("blogs", value):
+                logging.error("Memcache set failed")
+            return blogs
+        else:
+            blogs, lasttime = cachedItem
+            logging.debug("Returning memcached data. %s", lasttime)
+            return blogs
+
+    def render_blogs(self):
+        logging.debug("DB Query")
+        posts = db.GqlQuery("select * from Post "
+                           " order by created desc")
+        return self.render_str("postings.html", error='', posts=posts)
 
 class WikiPage(Handler):
     def get(self):        
@@ -50,8 +126,7 @@ class WikiPage(Handler):
 
     def get(self, resource):
         page = urllib.unquote(resource)
-        self.response.write("WIKI Page, resource: " + page )  
-        #self.render_one(param1, param1, '/wiki/_edit/'+page,  'no error')
+        # self.response.write("WIKI Page, resource: " + page )  
         self.render_one('data for page '+page , page, 'view', '/wiki/_edit/'+page,  'no error in ' +page )
 
     def render_one(self, wikidata='', page='', pageaction='', editurl='', error=''):
@@ -65,9 +140,6 @@ class WikiPage(Handler):
         else:
             #content = 'No data' 
             self.redirect('/wiki/_edit/%s' % page )
-
-
-
 
 class WikiPageStar(Handler):
     def get(self):        
@@ -88,13 +160,13 @@ class EditPage(Handler):
 
         if hw4_cookie:
             username = hw4_cookie.split('|')[0]
-            self.response.write("Welcome, %(username)s !" % {'username': username })
+            # self.response.write("Welcome, %(username)s !" % {'username': username })
         else:
-            self.redirect("/wiki/signup")    
+            self.redirect("/signup")    
             #self.response.write("Welcome, you're not autheticated")
 
-        self.response.write("Edit WIKI Page, resource: " + page )                        
-        #self.render_one(param1, param1, '/wiki/_edit/'+page,  'no error')
+        # self.response.write("Edit WIKI Page, resource: " + page )                        
+
         wiki = self.get_wiki(page=page)
         if wiki:
             self.render_one(wiki.content, page, 'edit', '/wiki/'+page,  'no error')
@@ -155,20 +227,13 @@ class HistoryPage(Handler):
 
         if hw4_cookie:
             username = hw4_cookie.split('|')[0]
-            self.response.write("Welcome, %(username)s !" % {'username': username })
+            # self.response.write("Welcome, %(username)s !" % {'username': username })
         else:
-            self.redirect("/wiki/signup")    
+            self.redirect("/signup")    
             #self.response.write("Welcome, you're not autheticated")
 
-        self.response.write("History WIKI Page, resource: " + page )                        
+        # self.response.write("History WIKI Page, resource: " + page )                        
         self.get_pages(page)
-        #wiki = self.get_wiki(page=page)
-        #if wiki:
-        #    self.render_one(wiki.content, page, 'edit', '/wiki/'+page,  'no error')
-        #else:            
-        #    self.render_one('empty page', page, 'edit', '/wiki/_edit/'+page,  'no error')
-        #    #self.redirect('/wiki/_edit/%s' % page)
-
 
     def get_pages(self, page):
         """
@@ -212,6 +277,7 @@ class HistoryPage(Handler):
 #                                ('/wiki'+ PAGE_RE, WikiPage),
 PAGE_RE = r'(/(?:[a-zA-Z0-9_-]+/?)*)'
 app = webapp2.WSGIApplication([
+                               ('/wiki', WikiHome),                              
                                ('/wiki/abc', WikiPage),                              
                                ('/wiki/save', EditPage),                              
                                ('/wiki/_edit/([^/]+[a-zA-Z0-9_-]+)?', EditPage),

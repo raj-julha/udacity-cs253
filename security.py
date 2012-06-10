@@ -1,17 +1,28 @@
+import uuid
 import hmac
 import logging
 # Implement the hash_str function to use HMAC and our SECRET instead of md5
 SECRET = 'inspiron'
-def hash_str(s):
-    ###Your code here
-    return hmac.new(SECRET, s).hexdigest()
 
-def make_secure_val(s):
-    return "%s|%s" % (s, hash_str(s))
+def hash_str(s, salt=None):
+    # return hmac.new(SECRET, s).hexdigest()
 
-def check_secure_val(h):
+    if salt == None:
+        newsalt = str(uuid.uuid4())
+    else:
+        # Exception TypeError: character mapping must return integer, None or unicode
+        # is raised if we don't explicitly convert salt using str
+        newsalt = str(salt) 
+
+    return newsalt, hmac.new(newsalt, s).hexdigest()
+
+def make_secure_val(s, salt=None):
+    newsalt, hashstr = hash_str(s, salt)
+    return "%s|%s" % (s, hashstr)
+
+def check_secure_val(h, salt=None):
     val = h.split('|')[0]
-    if h == make_secure_val(val):
+    if h == make_secure_val(val, salt):
         return val
 
 def write_authentication_cookie(resp, username, pwdhash):

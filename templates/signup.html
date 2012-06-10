@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Raj Julha - Udacity CS253 Web Application Engineering April 2012 Assignments{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .important { color: #336699; }
+        .error {color: red}
+    </style>
+{% endblock %}
+{% block content %}
+
+    <p class="important">
+      Signup
+    </p>
+
+<form method="post" action="/signup">
+    <table>
+        <tr>
+            <td>Username</td><td><input name="username" value="{{formfields.username}}" ></td>
+            <td class='error'>{{formfields.error_username}}</td>
+        </tr>
+        <tr>
+            <td>Password</td><td><input name="password" type="password" value="{{formfields.password}}" ></td>
+            <td class='error'>{{formfields.error_password}}</td>
+        </tr>
+        <tr>
+            <td>Verify</td><td><input name="verify" type="password" value="{{formfields.verify}}" > </td>
+            <td class='error'>{{formfields.error_verify}}</td>
+        </tr>
+        <tr>
+            <td>Email (optional)</td><td><input name="email" value="{{formfields.email}}" > </td>
+            <td class='error'>{{formfields.error_email}}</td>
+        </tr>
+</table>
+<br>
+<input type="submit" value="Save">
+</form>
+
+{% endblock %}
+
+

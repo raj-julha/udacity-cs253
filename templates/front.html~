@@ -1,10 +1,18 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Raj Julha - Udacity CS253 Blog (Homework 3)</title>
-    </head>
-    <body>
-        <h1>Post</h1>
+{% extends "base.html" %}
+{% block title %}Raj Julha - Udacity CS253 Web Application Engineering April 2012 Assignments{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .important { color: #336699; }
+    </style>
+{% endblock %}
+{% block content %}
+
+    <p class="important">
+        Raj Julha - Udacity CS253 Blog (Homework 3)
+    </p>
+
+        <h2>Post</h2>
         <form method="post">
             <label>
                 <div>Subject</div>
@@ -25,7 +33,7 @@
                 <pre class="art-body">{{art.content}}</pre>
             </div>
         {% endfor %}
-    </body>
-</html>
+
+{% endblock %}
 
 

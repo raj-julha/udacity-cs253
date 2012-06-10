@@ -16,6 +16,29 @@ libraries:
 
 handlers:
 
+- url: /css
+  static_dir: css
+
+- url: /
+  script: home.app
+
+- url: /index\.html
+  script: home.app
+
+- url: /signup
+  script: usermanagement.app
+
+- url: /welcome
+  script: usermanagement.app
+
+- url: /login
+  script: usermanagement.app
+
+- url: /logout
+  script: usermanagement.app
+
+- url: /flush
+  script: usermanagement.app
 
 # - url: /blog/post(/?[0-9]+)
 #  script: blog.app
@@ -56,6 +79,10 @@ handlers:
 #- url: /weke(/(?:[a-zA-Z0-9_-]+/?)*)
 #  script: wiki.app
 
+- url: /wiki
+  script: wiki.app
+
+
 - url: /wiki/signup
   script: raj-julha-cs253.application
 
@@ -72,6 +99,12 @@ handlers:
 - url: /wiki/.*
   script: wiki.app
 
-# should be last
 - url: /.*
-  script: raj-julha-cs253.application 
+  script: home.app
+
+
+# should be last
+# - url: /.*
+#   script: home.app
+#  script: raj-julha-cs253.application
+

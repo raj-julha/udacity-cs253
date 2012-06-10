@@ -7,10 +7,12 @@ import urllib
 from time import gmtime, strftime, localtime
 
 from google.appengine.ext import db
+from google.appengine.api import memcache
+
 from model import *
 from security import *
 
-
+from basehandler import *
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape = True)
@@ -36,54 +38,6 @@ form = """
 <input type="submit">
 </form>
 """
-
-
-signupform = """
-<html>
-  <head>
-    <title>Sign Upx</title>
-    <style type="text/css">      
-      .error {color: red}
-    </style>
-
-  </head>
-<body>
-<H1>Signup</H1>
-<form method="post" action="/wiki/signup">
-<table>
-<tr>
-<td>Username</td><td><input name="username" value="%(username)s" ></td>
-<td class='error'>%(error_username)s</td>
-</tr>
-<tr>
-<td>Password</td><td><input name="password" type="password" value="%(password)s" ></td>
-<td class='error'>%(error_password)s</td>
-</tr>
-<tr>
-<td>Verify</td><td><input name="verify" type="password" value="%(verify)s" > </td>
-<td class='error'>%(error_verify)s</td>
-</tr>
-<tr>
-<td>Email (optional)</td><td><input name="email" value="%(email)s" > </td>
-<td class='error'>%(error_email)s</td>
-</tr>
-</table>
-<br>
-<input type="submit">
-</form>
-</body>
-"""
-
-class Handler(webapp2.RequestHandler):
-    def write(self, *a, **kw):
-        self.response.out.write(*a, **kw)
-
-    def render_str(self, template, **params):
-        t = jinja_env.get_template(template)
-        return t.render(params)
-
-    def render(self, template, **kw):
-        self.write(self.render_str(template, **kw))
 
 
 class MainPage(webapp2.RequestHandler):
@@ -131,26 +85,6 @@ class MainPage(webapp2.RequestHandler):
         else:
             return s
 
-class Rot13Handler(webapp2.RequestHandler):
-    def write_form(self, error="", text=""):
-        self.response.out.write(form % {"error": error,
-                                        "text": cgi.escape(text, quote = True)})
-
-    def get(self):
-        #self.response.headers['Content-Type'] = 'text/plain'
-        #self.response.out.write(form)
-        self.write_form("","")
-
-    def post(self):
-        """Used when form method is post """
-        #q = self.request.get("q")
-        #self.response.out.write(q)
-        #self.response.headers['Content-Type'] = 'text/plain'
-        #self.response.out.write(self.request)
-        user_text = self.request.get('text')
-        text = user_text.encode('rot13')
-        self.write_form("",text)
-
 signupformfields = {"error": "",
                     "username": "",
                     "error_username": "",
@@ -163,13 +97,27 @@ signupformfields = {"error": "",
                     }
 
 
-class SignupHandler(webapp2.RequestHandler):
-    def write_form(self, fields):
-        #self.response.headers['Content-Type'] = 'text/plain'
-        #self.response.out.write(fields)        
-        #logging.info(signupformfields)
-        #logging.info(signupform % fields)
-        self.response.out.write(signupform % fields)
+class SignupHandler(Handler):
+    def get(self):
+        self.init_formfields()
+        self.render_front()
+
+    def post(self):
+        """Used when form method is post """
+        signupformfields['username'] =  cgi.escape(self.request.get('username'), quote = True)
+        signupformfields['password'] = cgi.escape(self.request.get('password'), quote = True)
+        signupformfields['verify'] = cgi.escape(self.request.get('verify'), quote = True)
+        signupformfields['email'] = cgi.escape(self.request.get('email'), quote = True)
+
+        if self.valid_form():
+            id = self.save()
+            self.redirect("/welcome")                        
+        else:
+            self.render_front()
+        
+    def render_front(self, error=""):
+        self.render("signup.html", formfields=signupformfields, error=error)
+
 
     def init_formfields(self):
         signupformfields['username'] = ''
@@ -181,29 +129,11 @@ class SignupHandler(webapp2.RequestHandler):
         signupformfields['email'] = ''
         signupformfields['error_email'] = ''
 
-    def get(self):
-        self.init_formfields()
-        self.write_form(signupformfields)
-
-    def post(self):
-        """Used when form method is post """
-        signupformfields['username'] =  cgi.escape(self.request.get('username'), quote = True)
-        signupformfields['password'] = cgi.escape(self.request.get('password'), quote = True)
-        signupformfields['verify'] = cgi.escape(self.request.get('verify'), quote = True)
-        signupformfields['email'] = cgi.escape(self.request.get('email'), quote = True)
-
-        if self.valid_form():
-            id = self.save()
-            # self.redirect("/welcome?username=%s id=%s" %  (signupformfields['username'], id))
-            self.redirect("/blog/welcome")                        
-        else:
-            self.write_form(signupformfields)
-        
     def save(self):
-        pwdhash = hash_str(signupformfields['password'])
+        salt, pwdhash = hash_str(signupformfields['password'])
         user = User(username=signupformfields['username'], 
                     email=signupformfields['email'],
-                    passwordhash= pwdhash)
+                    passwordhash=pwdhash, salt=salt)
         user.put()
         # and redirect the user to the entry
         id = user.key().id()
@@ -214,13 +144,8 @@ class SignupHandler(webapp2.RequestHandler):
         self.response.headers.add_header('Set-Cookie', hw4)
 
         return id
-
-        
-      
-
+              
     def valid_form(self):
-        logging.debug('Testing debug')
-        logging.info('Testing info') # This shows in app engine terminal screen
 
         signupformfields['error_username'] = ''
         signupformfields['error_password'] = ''
@@ -283,9 +208,6 @@ class SignupHandler(webapp2.RequestHandler):
             #self.write_form(signupformfields)
             return False
         else:
-            # self.response.out.write("Thanks for registering")
-            #self.write_form(signupformfields)
-            #self.redirect("/welcome?username=%s" %  signupformfields['username'])
             return True
 
 
@@ -309,9 +231,6 @@ class SignupHandler(webapp2.RequestHandler):
         return EMAIL_RE.match(email)
 
 class LoginHandler(Handler):    
-    def render_front(self, username="", password="", error=""):
-         #self.render("login.html", title=title, art=art, error=error, arts=arts)
-        self.render("login.html", username=username, password=password, error=error)
     def get(self):
         self.render_front()
 
@@ -331,36 +250,44 @@ class LoginHandler(Handler):
             #self.render("front.html", error = error)
             self.render_front(username, password, error)
 
+    def render_front(self, username="", password="", error=""):
+        self.render("login.html", username=username, password=password, error=error)
+
     def validate_user(self, username, password):
         pwdhash = ''
         users = User.gql("WHERE username = :1", username)
         if users.count() > 0:    
             user = users[0]
             pwdhash = user.passwordhash
+            salt = user.salt
             tocheck = '%s|%s' % (password, pwdhash)
-            if check_secure_val(tocheck):
+            # logging.debug('user: %s password|passwordhash: %s, salt: %s', user.username, tocheck, salt)
+            if check_secure_val(tocheck, salt):
                 return user
-            logging.debug('user: %s password|hash: %s', user.username, tocheck)
+            logging.debug('Authentication failed for user: %s password|hash: %s', user.username, tocheck)
         else:
             return None
 
 class LogoutHandler(Handler):    
     def get(self):
         delete_authentication_cookie(self.response)
-        self.redirect("/wiki/signup")        
+        self.redirect("/flush")        
 
 class WelcomeHandler(webapp2.RequestHandler):
     def get(self):
-        # username = self.request.get("username")
-        # self.request.cookies.get(name)
         hw4_cookie = self.request.cookies.get('HW4')
         if hw4_cookie:
-            # username = hw4_cookie
             username = hw4_cookie.split('|')[0]
             self.response.write("Welcome, %(username)s !" % {'username': username })
         else:
-            self.redirect("/wiki/signup")    
-            # self.response.write("Welcome, you're not autheticated")
+            self.redirect("/signup")    
+
+class FlushCache(Handler):
+    def get(self):
+        memcache.flush_all()
+        # self.response.write("Cache Cleared")        
+        self.redirect("/")                        
+
 
 class TestHandler(webapp2.RequestHandler):
     
@@ -377,18 +304,13 @@ class TestHandler(webapp2.RequestHandler):
         #self.response.headers['Content-Type'] = 'text/plain'
         self.response.out.write(self.request)
 
-application = webapp2.WSGIApplication(
+app = webapp2.WSGIApplication(
                                      [('/blog', MainPage),
-                                      ('/rot13', Rot13Handler),
-                                      ('/blog/signup', SignupHandler),
-                                      ('/blog/welcome', WelcomeHandler),
-                                      ('/blog/login', LoginHandler),
-                                      ('/blog/logout', LogoutHandler),
-                                      ('/testform', TestHandler),
-                                      ('/wiki/signup', SignupHandler),
-                                      ('/wiki/welcome', WelcomeHandler),
-                                      ('/wiki/login', LoginHandler),
-                                      ('/wiki/logout', LogoutHandler)
+                                      ('/signup', SignupHandler),
+                                      ('/welcome', WelcomeHandler),
+                                      ('/login', LoginHandler),
+                                      ('/logout', LogoutHandler),
+                                      ('/flush', FlushCache)
                                       ],                                      
                                      debug=True)
 

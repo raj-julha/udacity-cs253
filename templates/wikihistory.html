@@ -1,33 +1,18 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <style>
-            .post {
-                border: solid 1px gray;
-                padding: 5px 5px 5px 5px;
-                margin-bottom: 10px;
-                width: 75%;
-            }
-            .post-subject {
-                font-weight: bold;
-                font-family: arial, verdana;
-                background-color: silver;
-                color: blue;
-                padding: 5px 5px 5px 5px;
-            }
+{% extends "base.html" %}
+{% block title %}Raj Julha - Udacity CS253 Web Application Engineering April 2012 Assignments{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .important { color: #336699; }
+    </style>
+{% endblock %}
+{% block content %}
 
-            .post-created {
-                font-size: 10px;
-            }
+    <p class="important">
+        Raj Julha - Udacity CS253 WIKI (Homework 7)
+    </p>
+        {{pageid}} &nbsp;
 
-            .post-content {
-                / * border: solid 1px gray;/ 
-            }
-            
-        </style>
-        <title>Raj Julha - Udacity CS253 Wiki History (Homework 7 Bonus Question)</title>
-    </head>
-    <body>
         <h1>History</h1>
         <div class="error">{{error}}</div>
         <table>
@@ -50,7 +35,6 @@
         </table>
 
         <br>Queried {{cacheage}} seconds ago
-    </body>
-</html>
 
+{% endblock %}
 

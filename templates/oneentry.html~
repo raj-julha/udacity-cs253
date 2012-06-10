@@ -18,6 +18,7 @@
             <div class="error">{{error}}</div>
             <!-- <input type="submit"> -->
         </form>
+        <br>Queried {{cacheage}} seconds ago
     </body>
 </html>
 

@@ -1,10 +1,17 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Raj Julha - Udacity CS253 Login (Homework 4-2)</title>
-    </head>
-    <body>
-        <h1>Login</h1>
+{% extends "base.html" %}
+{% block title %}Raj Julha - Udacity CS253 Web Application Engineering April 2012 Assignments{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .important { color: #336699; }
+    </style>
+{% endblock %}
+{% block content %}
+
+    <p class="important">
+      Login
+    </p>
+
         <form method="post">
             <label>
                 <div>Username</div>
@@ -16,8 +23,21 @@
             </label>
 
             <div class="error">{{error}}</div>
-            <input type="submit">
+            <input type="submit" value="Login">
         </form>
+
+
+{% endblock %}
+
+
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Raj Julha - Udacity CS253 Login (Homework 4-2)</title>
+        <link href="/css/main.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
     </body>
 </html>
 

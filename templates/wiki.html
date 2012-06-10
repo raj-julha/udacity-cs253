@@ -1,10 +1,18 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Raj Julha - Udacity CS253 WIKI (Homework 7)</title>
-    </head>
-    <body>
-        <a href="/wiki/_history/{{pageid}}">History</a> &nbsp;nbsp;
+{% extends "base.html" %}
+{% block title %}Raj Julha - Udacity CS253 Web Application Engineering April 2012 Assignments{% endblock %}
+{% block head %}
+    {{ super() }}
+    <style type="text/css">
+        .important { color: #336699; }
+    </style>
+{% endblock %}
+{% block content %}
+
+    <p class="important">
+        Raj Julha - Udacity CS253 WIKI (Homework 7)
+    </p>
+        {{pageid}} &nbsp;
+        <a href="/wiki/_history/{{pageid}}">History</a> &nbsp;&nbsp;
         {% if pageaction == 'edit' %}
         <a href="{{editurl}}">View</a>
 
@@ -16,17 +24,16 @@
         </form>
         {% else %}
             <a href="{{editurl}}">Edit</a>
-            <br>
+            <br /><br />
             {{content}}
         {% endif %}
 
        {% if wikidata == 'page2' %}
-
             This is page 2
        {% endif %}
       <br> <div class="error">{{error}}</div>
-      <br> pageid : {{pageid}}
-    </body>
-</html>
+
+
+{% endblock %}
 
 

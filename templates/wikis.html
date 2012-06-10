@@ -9,25 +9,22 @@
 {% block content %}
 
     <p class="important">
-      Posts
+        Raj Julha - Udacity CS253 WIKI (Homework 7)
     </p>
+        {{pageid}} &nbsp;
 
-        <div class="error">{{error}}</div>
 
-        {% for post in posts %}
-            <hr>
+        {% for wikipage in wikipages %}
             <div class="post">
-                <div class="post-title">{{post.subject}}</div>
-                <div class="post-created">{{post.created}}</div>
+                <div class="post-subject">{{wikipage.subject}}</div>
+                <div class="post-created">{{wikipage.created}}</div>
                 <!-- strftime("%Y-%m-%d %H:%M:%S", localtime()) -->
-                <pre class="post-content">{{post.content}}</pre>
+                <pre class="post-content">{{wikipage.content}}</pre>
             </div>
-
+        
         {% endfor %}
         <br>Queried {{cacheage}} seconds ago
 
-
 {% endblock %}
-
 
 

@@ -1,0 +1,25 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    {% block head %}
+    <link href="/css/main.css" rel="stylesheet" type="text/css" />
+    <title>{% block title %}{% endblock %} - My Webpage</title>
+    {% endblock %}
+</head>
+<body>
+        <h1>Raj Julha - Udacity CS253 Web Application Engineering April 2012 Assignments</h1>
+        <a href="/signup">Signup</a> &nbsp;  &nbsp;
+        <a href="/login">Login</a> &nbsp;  &nbsp;
+        <a href="/logout">Logout</a> &nbsp;  &nbsp;
+        <a href="/blog">Blog</a> &nbsp;  &nbsp;
+        <a href="/wiki">Wiki</a> &nbsp;  &nbsp;
+
+    <div id="content">{% block content %}{% endblock %}</div>
+    <div id="footer">
+        {% block footer %}
+        &copy; Copyright 2012 by <a href="http://domain.invalid/">Creative Commons</a>.
+        {% endblock %}
+    </div>
+</body>
+
